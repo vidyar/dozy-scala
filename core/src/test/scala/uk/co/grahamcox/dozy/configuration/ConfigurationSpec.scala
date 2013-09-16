@@ -13,13 +13,13 @@ class ConfigurationSpec extends FlatSpec with Inside with MustMatchers {
       (bean[String]("other")
         depends beanRef("string") as "s"
         constructed ((bd: BeanData) => {
-          bd.get[String]("string") map { _ + " World" }
+          bd.get[String]("s") map { _ + " World" }
         }))
 
       (bean[Integer]()
         depends beanRef("other") as "o"
         constructed ((bd: BeanData) => {
-          bd.get[String]("other") map { _.length }
+          bd.get[String]("o") map { _.length }
         }))
     }
 
