@@ -3,37 +3,17 @@ package uk.co.grahamcox.dozy.configuration
 import grizzled.slf4j.Logger
 import java.util.UUID
 
-/**
- * Base class defining a dependency from one bean to another
- */
-abstract class BeanDependency
-
-/**
- * Bean Dependency that is literally a dependency on another named bean
- * @param id The ID of the bean to depend on
- */
-case class BeanReference(id: String) extends BeanDependency
-
-/**
- * Definition of the data required to construct a bean
- */
-abstract class BeanData {
+class BeanDepEntry[T](builder: BeanDefinitionBuilder[T], dep: BeanDependency) {
   /**
-   * Get the bean with the given name, constructing it first if necessary
-   * @param name The name of the bean to get
-   * @return the constructed bean, or None if it can't be found
+   * Register the bean dependency with the builder under the given name
+   * @param name The name to register the dependency as
+   * @return The builder to use
    */
-  def get[T](name: String): Option[T] = None
+  def as(name: String): BeanDefinitionBuilder[T] = {
+    builder.addDependency(name, dep)
+    builder
+  }
 }
-
-/**
- * A fully formed Bean Definition
- * @param beanName the name of the bean
- * @param beanType the type of the bean
- * @param dependencies the dependencies of the bean
- * @param constructor the function to construct the bean
- */
-case class BeanDefinition[T](beanName: String, beanType: Manifest[T], dependencies: Seq[BeanDependency], constructor: BeanData => Option[T])
 
 /**
  * Builder to use to define a bean in the configuration
@@ -48,7 +28,7 @@ class BeanDefinitionBuilder[T: Manifest](val beanName: String) {
   /** The constructor function to use */
   var constructor: BeanData => Option[T] = (bd: BeanData) => None
   /** The dependencies of the bean */
-  var dependencies: Seq[BeanDependency] = Nil
+  var dependencies: Map[String, BeanDependency] = Map.empty[String, BeanDependency]
 
   logger.debug("Creating bean builder for bean name " + beanName + " of type " + beanType)
 
@@ -57,10 +37,18 @@ class BeanDefinitionBuilder[T: Manifest](val beanName: String) {
    * @param dep The dependency definition
    * @return this, for chaining
    */
-  def depends(dep: BeanDependency): this.type = {
+  def depends(dep: BeanDependency): BeanDepEntry[T] = {
     logger.debug("Bean " + beanName + " depends on " + dep)
-    this.dependencies ++= Seq(dep)
-    this
+    new BeanDepEntry(this, dep)
+  }
+
+  /**
+   * Actually add the depedency to the bean definition
+   * @param name The name of the dependency
+   * @param dep The dependency
+   */
+  def addDependency(name: String, dep: BeanDependency) {
+    dependencies ++= Map(name -> dep)
   }
   /**
    * Define the actual mechanism to construct this bean

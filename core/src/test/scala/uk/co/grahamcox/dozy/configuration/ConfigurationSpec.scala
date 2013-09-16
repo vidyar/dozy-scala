@@ -11,13 +11,13 @@ class ConfigurationSpec extends FlatSpec with Inside with MustMatchers {
         )
 
       (bean[String]("other")
-        depends beanRef("string")
+        depends beanRef("string") as "s"
         constructed ((bd: BeanData) => {
           bd.get[String]("string") map { _ + " World" }
         }))
 
       (bean[Integer]()
-        depends beanRef("other")
+        depends beanRef("other") as "o"
         constructed ((bd: BeanData) => {
           bd.get[String]("other") map { _.length }
         }))
@@ -38,7 +38,7 @@ class ConfigurationSpec extends FlatSpec with Inside with MustMatchers {
           beanName must be("other")
           beanType must be(manifest[String])
           dependencies must have size(1)
-          inside(dependencies) { case Seq(stringDependency) =>
+          inside(dependencies.get("s")) { case Some(stringDependency) =>
             inside(stringDependency) { case BeanReference(stringId) =>
               stringId must be("string")
             }
@@ -47,7 +47,7 @@ class ConfigurationSpec extends FlatSpec with Inside with MustMatchers {
         inside(integer) { case BeanDefinition(beanName, beanType, dependencies, constructor) =>
           beanType must be(manifest[Integer])
           dependencies must have size(1)
-          inside(dependencies) { case Seq(stringDependency) =>
+          inside(dependencies.get("o")) { case Some(stringDependency) =>
             inside(stringDependency) { case BeanReference(stringId) =>
               stringId must be("other")
             }
