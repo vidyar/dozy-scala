@@ -5,4 +5,5 @@ notifications:
   email:
     recipients:
       - mailsharath@gmail.com
+      - mail@isharath.com
     on_success: always
