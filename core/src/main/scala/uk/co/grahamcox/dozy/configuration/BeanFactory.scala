@@ -84,8 +84,11 @@ class BeanFactory(parent: Option[BeanFactory] = None, beanDefinitions: Seq[BeanD
         manifest.runtimeClass.isAssignableFrom(beanType.runtimeClass)
       }
     }
-    filtered map {
+    val names = filtered map {
       case (key: String, definition: BeanDefinition[_]) => key
+    }
+    names filter {
+      name => defined(name)
     }
   }
 

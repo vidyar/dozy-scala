@@ -73,6 +73,11 @@ class BeanFactorySpec extends FunSpec with Inside with OptionValues with MustMat
           it("should be able to construct the bean"){
             beanFactory.get[Integer]("integer").value must be(5)
           }
+          it("should have a bean of type Integer"){
+            val beanNames = beanFactory.getBeansOfType[Integer]
+            beanNames must not be ('empty)
+            beanNames must contain("integer")
+          }
         }
         describe("with the depedency missing") {
           val beanDefinitions: Seq[BeanDefinition[_]] = Seq(
@@ -87,6 +92,10 @@ class BeanFactorySpec extends FunSpec with Inside with OptionValues with MustMat
           }
           it("should be unable to construct the bean"){
             beanFactory.get[Integer]("integer") must not be('defined)
+          }
+          it("should not have a bean of type Integer"){
+            val beanNames = beanFactory.getBeansOfType[Integer]
+            beanNames must be ('empty)
           }
         }
       }
