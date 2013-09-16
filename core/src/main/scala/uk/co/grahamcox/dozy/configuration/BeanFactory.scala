@@ -69,6 +69,27 @@ class BeanFactory(parent: Option[BeanFactory] = None, beanDefinitions: Seq[BeanD
   }
 
   /**
+   * Get a list of all the bean names that can fulfil the provided bean type
+   * @param manifest Implicit parameter giving the type of bean to get
+   * @return the sequence of bean names that can fulfil this type.
+   */
+  def getBeansOfType[T](implicit manifest: Manifest[T]): Iterable[String] = {
+    logger.debug("Finding beans that fulfil the type %s".format(manifest))
+    val filtered = beanDefs filter {
+      case (key: String, definition: BeanDefinition[_]) => {
+        val beanType = definition.beanType
+        // Object.isAssignableFrom(Integer) == True
+        // Integer.isAssignableFrom(Object) == False
+        logger.debug("Bean %s has type %s".format(key, beanType.runtimeClass))
+        manifest.runtimeClass.isAssignableFrom(beanType.runtimeClass)
+      }
+    }
+    filtered map {
+      case (key: String, definition: BeanDefinition[_]) => key
+    }
+  }
+
+  /**
    * Determine if a bean is defined by this bean factory hierarchy
    * @param bean The name of the bean
    * @return the bean, or None if it couldn't be built by this factory
