@@ -2,8 +2,5 @@ language: scala
 scala:
     - 2.10.2
 notifications:
-  email:
-    recipients:
-      - mailsharath@gmail.com
-      - mail@isharath.com
-    on_success: always
+  email: false
+  
